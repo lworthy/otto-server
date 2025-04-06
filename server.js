@@ -6,10 +6,10 @@ const menuItems = require('./data');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// 🔥 Add this line to allow cross-origin requests
+
 app.use(cors());
 
-// Serve static files like index.html
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API route
