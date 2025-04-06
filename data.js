@@ -5,14 +5,14 @@ const menuItems = [
         name: "SH Burger",
         description: "Juicy beef patty with smoky bacon, melted cheddar, crispy fried onions, and house-made BBQ sauce.",
         price: 16,
-        image: "/images/burger.jpg"
+        image: "https://otto-server-g8hy.onrender.com/images/burger.jpg"
       },
       {
         id: 2,
         name: "Specialty Pasta",
         description: "Creamy garlic parmesan pasta with grilled chicken and sun-dried tomatoes, topped with fresh basil.",
         price: 18,
-        image: "/images/pasta.jpg"
+        image: "https://otto-server-g8hy.onrender.com/images/pasta.jpg"
       },
       {
         id: 3,
