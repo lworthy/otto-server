@@ -20,7 +20,7 @@ app.get('/api/menu', (req, res) => {
 app.post('/api/menu', (req, res) => {
   const schema = Joi.object({
     name: Joi.string().min(3).required(),
-    description: Joi.string().min(10).required(),
+    description: Joi.string().min(5).required(),
     price: Joi.number().positive().required(),
     image: Joi.string().uri().required()
   });
