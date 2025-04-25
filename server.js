@@ -1,20 +1,30 @@
+require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const Joi = require('joi');
 const multer = require('multer');
-const menuItems = require('./data');
+const MenuItem = require('./models/MenuItem');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log("✅ Connected to MongoDB"))
+.catch((err) => console.error(" MongoDB connection error:", err));
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
+// Multer config
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, 'public/images');
@@ -31,13 +41,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// GET route
-app.get('/api/menu', (req, res) => {
-  res.json(menuItems);
+
+//  GET route - MongoDB
+app.get('/api/menu', async (req, res) => {
+  try {
+    const items = await MenuItem.find();
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch menu items." });
+  }
 });
 
-// POST route with file upload
-app.post('/api/menu', upload.single('image'), (req, res) => {
+//  POST route - MongoDB
+app.post('/api/menu', upload.single('image'), async (req, res) => {
   const { name, description, price } = req.body;
   const imageFile = req.file;
 
@@ -57,24 +73,25 @@ app.post('/api/menu', upload.single('image'), (req, res) => {
     return res.status(400).json({ success: false, message: result.error.details[0].message });
   }
 
-  const newItem = {
-    name,
-    description,
-    price: parseFloat(price),  
-    image: `/images/${imageFile.filename}` 
-  };
+  try {
+    const newItem = new MenuItem({
+      name,
+      description,
+      price: parseFloat(price),
+      image: `https://otto-server-g8hy.onrender.com/images/${imageFile.filename}`
+    });
 
-  menuItems.push(newItem);
-  res.status(200).json({ success: true, message: 'Menu item added successfully!', item: newItem });
+    await newItem.save();
+    res.status(200).json({ success: true, message: 'Menu item added successfully!', item: newItem });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to save item to database.' });
+  }
 });
 
-// PUT route to update a menu item
-app.put('/api/menu/:index', upload.single('image'), (req, res) => {
-  const index = parseInt(req.params.index);
-  if (isNaN(index) || index < 0 || index >= menuItems.length) {
-    return res.status(404).json({ success: false, message: 'Item not found' });
-  }
 
+// Legacy PUT route - to be updated for MongoDB
+app.put('/api/menu/:id', upload.single('image'), async (req, res) => {
+  const { id } = req.params;
   const { name, description, price } = req.body;
   const imageFile = req.file;
 
@@ -90,28 +107,47 @@ app.put('/api/menu/:index', upload.single('image'), (req, res) => {
     return res.status(400).json({ success: false, message: result.error.details[0].message });
   }
 
-  const updatedItem = {
-    name,
-    description,
-    price: parseFloat(price),
-    image: imageFile ? `/images/${imageFile.filename}` : menuItems[index].image
-  };
+  try {
+    const updateData = {
+      name,
+      description,
+      price: parseFloat(price),
+    };
 
-  menuItems[index] = updatedItem;
+    if (imageFile) {
+      updateData.image = `https://otto-server-g8hy.onrender.com/images/${imageFile.filename}`;
+    }
 
-  res.status(200).json({ success: true, message: 'Item updated successfully!', item: updatedItem });
-});
+    const updatedItem = await MenuItem.findByIdAndUpdate(id, updateData, { new: true });
 
-// DELETE route to remove a menu item
-app.delete('/api/menu/:index', (req, res) => {
-  const index = parseInt(req.params.index);
-  if (isNaN(index) || index < 0 || index >= menuItems.length) {
-    return res.status(404).json({ success: false, message: 'Item not found' });
+    if (!updatedItem) {
+      return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Item updated successfully!', item: updatedItem });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to update item.' });
   }
-
-  menuItems.splice(index, 1);
-  res.status(200).json({ success: true, message: 'Item deleted successfully!' });
 });
 
-//  Start server
+
+// Legacy DELETE route - to be updated for MongoDB
+app.delete('/api/menu/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedItem = await MenuItem.findByIdAndDelete(id);
+
+    if (!deletedItem) {
+      return res.status(404).json({ success: false, message: 'Item not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Item deleted successfully!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to delete item.' });
+  }
+});
+
+
+// Start server
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
