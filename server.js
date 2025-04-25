@@ -46,13 +46,14 @@ const upload = multer({ storage });
 
 app.get('/api/menu', async (req, res) => {
   try {
-    const items = await MenuItem.find(); // 🧠 Fetch all menu items from MongoDB
+    const items = await MenuItem.find();
     res.json({ success: true, menu: items });
   } catch (err) {
-    console.error(err);
+    console.error("🔥 Error fetching menu items:", err); // <--- ADD THIS
     res.status(500).json({ success: false, message: 'Failed to fetch menu items' });
   }
 });
+
 
 
 //  POST route - MongoDB
