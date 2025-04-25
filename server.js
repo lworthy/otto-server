@@ -1,11 +1,11 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const Joi = require('joi');
 const multer = require('multer');
+const mongoose = require('mongoose');
 const MenuItem = require('./models/MenuItem');
 
 const app = express();
@@ -43,14 +43,17 @@ const upload = multer({ storage });
 
 
 //  GET route - MongoDB
+
 app.get('/api/menu', async (req, res) => {
   try {
-    const items = await MenuItem.find();
-    res.json(items);
+    const items = await MenuItem.find(); // 🧠 Fetch all menu items from MongoDB
+    res.json({ success: true, menu: items });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch menu items." });
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Failed to fetch menu items' });
   }
 });
+
 
 //  POST route - MongoDB
 app.post('/api/menu', upload.single('image'), async (req, res) => {
