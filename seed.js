@@ -60,7 +60,7 @@ mongoose.connect(process.env.MONGO_URI, {
     }
   ];
 
-  await MenuItem.deleteMany(); // Optional: clear old items
+  await MenuItem.deleteMany(); 
   await MenuItem.insertMany(items);
   console.log(' Seed data inserted!');
   process.exit(); // Exit after finishing
