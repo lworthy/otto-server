@@ -16,7 +16,7 @@ mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log("✅ Connected to MongoDB"))
+.then(() => console.log(" Connected to MongoDB"))
 .catch((err) => console.error(" MongoDB connection error:", err));
 
 // Middleware
@@ -49,7 +49,7 @@ app.get('/api/menu', async (req, res) => {
     const items = await MenuItem.find();
     res.json({ success: true, menu: items });
   } catch (err) {
-    console.error("🔥 Error fetching menu items:", err); // <--- ADD THIS
+    console.error(" Error fetching menu items:", err); 
     res.status(500).json({ success: false, message: 'Failed to fetch menu items' });
   }
 });
@@ -93,7 +93,7 @@ app.post('/api/menu', upload.single('image'), async (req, res) => {
 });
 
 
-// Legacy PUT route - to be updated for MongoDB
+// Legacy PUT route 
 app.put('/api/menu/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
   const { name, description, price } = req.body;
@@ -135,7 +135,7 @@ app.put('/api/menu/:id', upload.single('image'), async (req, res) => {
 });
 
 
-// Legacy DELETE route - to be updated for MongoDB
+// Legacy DELETE route 
 app.delete('/api/menu/:id', async (req, res) => {
   const { id } = req.params;
 
